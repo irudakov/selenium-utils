@@ -130,6 +130,29 @@ public final class Findr {
         return waitTimeout;
     }
 
+    /**
+     * Helper for "nested" Findrs. Allows to use a <code>WebElement</code> as the
+     * root of a new Findr.
+     * @param driver The WebDriver
+     * @param webElement the WebElement to use as root
+     * @return a new Findr that has the specified WebElement as its root
+     */
+    public static Findr fromWebElement(WebDriver driver, final WebElement webElement) {
+        return fromWebElement(driver, webElement, WAIT_TIMEOUT_SECONDS);
+    }
+
+    /**
+     * Helper for "nested" Findrs. Allows to use a <code>WebElement</code> as the
+     * root of a new Findr.
+     * @param driver The WebDriver
+     * @param webElement the WebElement to use as root
+     * @param waitTimeout the wait timeout in seconds
+     * @return a new Findr that has the specified WebElement as its root
+     */
+    public static Findr fromWebElement(WebDriver driver, final WebElement webElement, int waitTimeout) {
+        Findr f = new Findr(driver, waitTimeout);
+        return f.compose(input -> webElement, "fromWebElement(" + webElement + ")");
+    }
 
     private Findr(WebDriver driver,
                   int waitTimeout,
@@ -323,7 +346,7 @@ public final class Findr {
      * @throws TimeoutException if at least one condition in the chain failed
      */
     public <T> T eval(final Function<WebElement, T> callback) throws TimeoutException {
-        return wrapWebDriverWait(withoutWebDriverException(input -> {
+      return wrapWebDriverWait(withoutWebDriverException(input -> {
             if (f == null) {
                 throw new EmptyFindrException();
             }
@@ -341,6 +364,10 @@ public final class Findr {
             }
             return res;
         }));
+    }
+
+    public <T> T eval(final com.google.common.base.Function<WebElement, T> callback) throws TimeoutException {
+        return eval((Function<WebElement,T>)callback);
     }
 
     private static final Function<WebElement, ?> IDENTITY_FOR_EVAL = (Function<WebElement, Object>) webElement -> true;
