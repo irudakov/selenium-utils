@@ -1,10 +1,9 @@
 package com.pojosontheweb.selenium;
 
-
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Supplier;
 import org.openqa.selenium.TimeoutException;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.pojosontheweb.selenium.Findr.logDebug;
 
@@ -63,40 +62,31 @@ public class Retry {
         }
 
         public <O> RetryWithResult<O> add(final Function<T,O> mapper) {
-            return new RetryWithResult<O>(count + 1, retries, new Supplier<O>() {
-                @Override
-                public O get() {
-                    O res = mapper.apply(func.get());
-                    logDebug("[Retry] step #" + count);
-                    return res;
-                }
+            return new RetryWithResult<>(count + 1, retries, () -> {
+                O res = mapper.apply(func.get());
+                logDebug("[Retry] step #" + count);
+                return res;
             });
         }
 
         public <O> RetryWithResult<O> add(final Findr other, final Function<T,O> mapper) {
-            return add(new Function<T, O>() {
-                @Override
-                public O apply(T t) {
-                    other.eval();
-                    return mapper.apply(t);
-                }
+            return add(t -> {
+                other.eval();
+                return mapper.apply(t);
             });
         }
 
         public RetryWithResult<T> add(final Findr other) {
-            return add(other, Functions.<T>identity());
+            return add(other, (x) -> x);
         }
 
         public RetryNoResult add(final RetryConsumer<T> consumer) {
             return new RetryNoResult(
                     count,
                     retries,
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            consumer.accept(func.get());
-                            logDebug("[Retry] step #" + count);
-                        }
+                    () -> {
+                        consumer.accept(func.get());
+                        logDebug("[Retry] step #" + count);
                     }
             );
         }
@@ -129,46 +119,30 @@ public class Retry {
         }
 
         public RetryNoResult add(final Runnable other) {
-            return new RetryNoResult(count + 1, retries, new Runnable() {
-                @Override
-                public void run() {
-                    runnable.run();
-                    logDebug("[Retry] step #" + count);
-                    other.run();
-                }
+            return new RetryNoResult(count + 1, retries, () -> {
+                runnable.run();
+                logDebug("[Retry] step #" + count);
+                other.run();
             });
         }
 
         public RetryNoResult add(final Findr f) {
-            return add(new Runnable() {
-                @Override
-                public void run() {
-                    f.eval();
-                }
-            });
+            return add((Runnable) f::eval);
         }
 
         public RetryNoResult add(final Findr.ListFindr f) {
-            return add(new Runnable() {
-                @Override
-                public void run() {
-                    f.eval();
-                }
-            });
+            return add((Runnable) f::eval);
         }
 
         public <O> RetryWithResult<O> add(final Supplier<O> supplier) {
-            return new RetryWithResult<O>(
+            return new RetryWithResult<>(
                     count,
                     retries,
-                    new Supplier<O>() {
-                        @Override
-                        public O get() {
-                            runnable.run();
-                            O res = supplier.get();
-                            logDebug("[Retry] step #" + count);
-                            return res;
-                        }
+                    () -> {
+                        runnable.run();
+                        O res = supplier.get();
+                        logDebug("[Retry] step #" + count);
+                        return res;
                     }
             );
         }
@@ -185,11 +159,8 @@ public class Retry {
     }
 
     public static RetryNoResult retry(int retries) {
-        return new RetryNoResult(0, retries, new Runnable() {
-            @Override
-            public void run() {
-                // it's a noop
-            }
+        return new RetryNoResult(0, retries, () -> {
+            // it's a noop
         });
     }
 

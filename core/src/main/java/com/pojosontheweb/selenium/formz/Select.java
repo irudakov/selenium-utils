@@ -1,9 +1,10 @@
 package com.pojosontheweb.selenium.formz;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.pojosontheweb.selenium.Findr;
 import org.openqa.selenium.WebElement;
+
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Select {
 
@@ -47,7 +48,7 @@ public class Select {
     public static Predicate<WebElement> selectedText(final String expectedText) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement select) {
+            public boolean test(WebElement select) {
                 org.openqa.selenium.support.ui.Select selSelect =
                         new org.openqa.selenium.support.ui.Select(select);
                 WebElement selOption = selSelect.getFirstSelectedOption();
@@ -55,10 +56,7 @@ public class Select {
                     return false;
                 }
                 String text = selOption.getText();
-                if (text == null) {
-                    return false;
-                }
-                return text.equals(expectedText);
+                return text != null && text.equals(expectedText);
             }
 
             @Override

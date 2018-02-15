@@ -46,7 +46,7 @@
         <gmavenVersion>1.5</gmavenVersion>
         <gmavenProviderSelection>2.0</gmavenProviderSelection>
         <groovyVersion>2.3.9</groovyVersion>
-        <seleniumVersion>2.53.1</seleniumVersion>
+        <seleniumVersion>3.9.1</seleniumVersion>
     </properties>
     <build>
         <pluginManagement>
@@ -81,8 +81,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
         </plugins>

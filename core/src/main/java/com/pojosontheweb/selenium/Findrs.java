@@ -1,11 +1,11 @@
 package com.pojosontheweb.selenium;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import org.openqa.selenium.WebElement;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Groups useful predicates and functions.
@@ -22,7 +22,7 @@ public class Findrs {
     public static Predicate<WebElement> attrEquals(final String attrName, final String expectedValue) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement webElement) {
+            public boolean test(WebElement webElement) {
                 String attrVal = webElement.getAttribute(attrName);
                 return attrVal != null && attrVal.equals(expectedValue);
             }
@@ -44,7 +44,7 @@ public class Findrs {
     public static Predicate<WebElement> attrStartsWith(final String attrName, final String expectedStartsWith) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement webElement) {
+            public boolean test(WebElement webElement) {
                 String attrVal = webElement.getAttribute(attrName);
                 return attrVal != null && attrVal.startsWith(expectedStartsWith);
             }
@@ -66,7 +66,7 @@ public class Findrs {
     public static Predicate<WebElement> attrEndsWith(final String attrName, final String expectedEndsWith) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement webElement) {
+            public boolean test(WebElement webElement) {
                 String attrVal = webElement.getAttribute(attrName);
                 return attrVal != null && attrVal.endsWith(expectedEndsWith);
             }
@@ -88,7 +88,7 @@ public class Findrs {
     public static Predicate<WebElement> hasClass(final String className) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement webElement) {
+            public boolean test(WebElement webElement) {
                 String cssClasses = webElement.getAttribute("class");
                 if (cssClasses == null) {
                     return false;
@@ -114,7 +114,7 @@ public class Findrs {
     public static Predicate<WebElement> textEquals(final String expected) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement webElement) {
+            public boolean test(WebElement webElement) {
                 String text = webElement.getText();
                 return text != null && text.equals(expected);
             }
@@ -136,12 +136,9 @@ public class Findrs {
     public static Predicate<WebElement> textStartsWith(final String expectedStartsWith) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
+            public boolean test(WebElement input) {
                 String text = input.getText();
-                if (text == null) {
-                    return false;
-                }
-                return text.startsWith(expectedStartsWith);
+                return text != null && text.startsWith(expectedStartsWith);
             }
 
             @Override
@@ -162,12 +159,9 @@ public class Findrs {
     public static Predicate<WebElement> textContains(final String expectedContains) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
+            public boolean test(WebElement input) {
                 String text = input.getText();
-                if (text == null) {
-                    return false;
-                }
-                return text.contains(expectedContains);
+                return text != null && text.contains(expectedContains);
             }
 
             @Override
@@ -188,12 +182,9 @@ public class Findrs {
     public static Predicate<WebElement> textEndsWith(final String expectedEndsWith) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
+            public boolean test(WebElement input) {
                 String text = input.getText();
-                if (text == null) {
-                    return false;
-                }
-                return text.endsWith(expectedEndsWith);
+                return text != null && text.endsWith(expectedEndsWith);
             }
 
             @Override
@@ -212,7 +203,7 @@ public class Findrs {
     public static Predicate<WebElement> isEnabled() {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
+            public boolean test(WebElement input) {
                 return input.isEnabled();
             }
 
@@ -231,7 +222,7 @@ public class Findrs {
     public static Predicate<WebElement> isDisplayed() {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
+            public boolean test(WebElement input) {
                 return input.isDisplayed();
             }
 
@@ -250,12 +241,9 @@ public class Findrs {
     public static Predicate<WebElement> textMatches(final String regexp) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
+            public boolean test(WebElement input) {
                 String text = input.getText();
-                if (text == null) {
-                    return false;
-                }
-                return text.matches(regexp);
+                return text != null && text.matches(regexp);
             }
 
             @Override
@@ -275,7 +263,7 @@ public class Findrs {
     public static Predicate<WebElement> cssValue(final String propName, final String expectedValue) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement webElement) {
+            public boolean test(WebElement webElement) {
                 String attrVal = webElement.getCssValue(propName);
                 return attrVal != null && attrVal.equals(expectedValue);
             }
@@ -296,13 +284,47 @@ public class Findrs {
     public static Predicate<WebElement> not(final Predicate<WebElement> in) {
         return new Predicate<WebElement>() {
             @Override
-            public boolean apply(WebElement input) {
-                return !in.apply(input);
+            public boolean test(WebElement input) {
+                return !in.test(input);
             }
 
             @Override
             public String toString() {
                 return "not " + in.toString();
+            }
+        };
+    }
+
+    /**
+     * Create and return a new Predicate that ANDs passed predicates.
+     */
+    public static Predicate<WebElement> and(final Predicate<WebElement> lhs, final Predicate<WebElement> rhs) {
+        return new Predicate<WebElement>() {
+            @Override
+            public boolean test(WebElement input) {
+                return lhs.test(input) && rhs.test(input);
+            }
+
+            @Override
+            public String toString() {
+                return "and(" + lhs.toString() + ", " + rhs.toString();
+            }
+        };
+    }
+
+    /**
+     * Create and return a new Predicate that ORs passed predicates.
+     */
+    public static Predicate<WebElement> or(final Predicate<WebElement> lhs, final Predicate<WebElement> rhs) {
+        return new Predicate<WebElement>() {
+            @Override
+            public boolean test(WebElement input) {
+                return lhs.test(input) || rhs.test(input);
+            }
+
+            @Override
+            public String toString() {
+                return "or(" + lhs.toString() + ", " + rhs.toString();
             }
         };
     }

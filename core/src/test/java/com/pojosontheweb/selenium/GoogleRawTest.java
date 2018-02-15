@@ -1,13 +1,12 @@
 package com.pojosontheweb.selenium;
 
-import com.google.common.base.Function;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Ignore;
 import org.openqa.selenium.*;
 
-import static com.pojosontheweb.selenium.Findrs.textContains;
-import static com.pojosontheweb.selenium.Findrs.textMatches;
+import java.util.function.Function;
+
+import static com.pojosontheweb.selenium.Findrs.*;
 import static org.junit.Assert.assertTrue;
 
 public class GoogleRawTest {
@@ -122,10 +121,9 @@ public class GoogleRawTest {
 
         GooglePage assertAnyWokoAndAllHaveClass() {
             fSearch
-                    .setTimeout(5)
                     .$$("h3")
                     .whereAny(textContains("POJOs on the Web"))
-                    .whereAll(Findrs.hasClass("r"))
+                    .whereAll(or(hasClass("r"), hasClass("_DM"))) // this _DM class appears magically when running from maven...
                     .eval();
             return this;
         }
